@@ -1,0 +1,377 @@
+     1                                  ;****************************************************************************************************************************
+     2                                  ;Program name: "SalaryInterview".  This program demonstrates the input of the user name and salary and ask various questions that *
+     3                                  ;may alter the salary of the user. In addition would calculate resistance of the circuit.                                   *
+     4                                  ;Copyright (C) 2021 Albert Truong.                                                                                         *
+     5                                  ;                                                                                                                           *
+     6                                  ;This file is part of the software program "SalaryInterview".                                                                *
+     7                                  ;SalaryInterview is free software: you can redistribute it and/or modify it under the terms of the GNU General Public        *
+     8                                  ;License version 3 as published by the Free Software Foundation.                                                            *
+     9                                  ;SalaryInterview is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied       *
+    10                                  ;warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.     *
+    11                                  ;A copy of the GNU General Public License v3 is available here:  <https:;www.gnu.org/licenses/>.                            *
+    12                                  ;****************************************************************************************************************************
+    13                                  
+    14                                  
+    15                                  ;/=======1=========2=========3=========4=========5=========6=========7=========8=========9=========0=========1=========2=========3**
+    16                                  ;
+    17                                  ;Author information
+    18                                  ;Author name: Albert Truong
+    19                                  ;Author email: atruong811@fullerton.edu
+    20                                  ;
+    21                                  ;Program information
+    22                                  ;  Program name: SalaryInterview
+    23                                  ;  Programming languages: One modules in C++ and one module in X86
+    24                                  ;  Date program began: 2021-Apr-15
+    25                                  ;  Date of last update: 2021-Apr-25
+    26                                  ;  Date of reorganization of comments: 2021-Apr-25
+    27                                  ;  Files in this program: Main.cpp, interview.asm
+    28                                  ;  Status: Finished.  The program was tested extensively with no errors in Ubuntu20.04 LTS on Windows 10 utilizing WSL.
+    29                                  ;
+    30                                  ;Purpose
+    31                                  ;  This program demonstrates the input of the user name and salary and ask various questions that
+    32                                  ;  may alter the salary of the user. In addition would calculate resistance of the circuit.
+    33                                  ;
+    34                                  ;This file
+    35                                  ;   File name: interview.asm
+    36                                  ;   Language: X86 with Intel syntax.
+    37                                  ;   Max page width: 132 columns
+    38                                  ;   Assemble: nasm -f elf64 -l interview.lis -o interview.o interview.asm
+    39                                  
+    40                                  ;===== Begin code area ================================================================================================
+    41                                  extern printf
+    42                                  extern scanf
+    43                                  global work
+    44                                  
+    45                                  segment .data
+    46 00000000 48656C6C6F20257320-     welcome db "Hello %s I am Ms Fenster.  The interview will begin now.",10,0
+    46 00000009 4920616D204D732046-
+    46 00000012 656E737465722E2020-
+    46 0000001B 54686520696E746572-
+    46 00000024 766965772077696C6C-
+    46 0000002D 20626567696E206E6F-
+    46 00000036 772E0A00           
+    47 0000003A 576F7721202425382E-     wow db "Wow! $%8.2lf. ",0
+    47 00000043 326C662E2000       
+    48 00000049 546861742773206E6F-     low1 db "That's not a lot of cash. ",10,0
+    48 00000052 742061206C6F74206F-
+    48 0000005B 6620636173682E200A-
+    48 00000064 00                 
+    49 00000065 546861742773206120-     high1 db "That's a lot of cash. ",10,0
+    49 0000006E 6C6F74206F66206361-
+    49 00000077 73682E200A00       
+    50 0000007D 546861742773206120-     mid1 db "That's a good salary. ",10,0
+    50 00000086 676F6F642073616C61-
+    50 0000008F 72792E200A00       
+    51 00000095 57686F20646F20796F-     sawyercheck db "Who do you think you are, Chris Sawyer (y or n)? ",10,0
+    51 0000009E 75207468696E6B2079-
+    51 000000A7 6F75206172652C2043-
+    51 000000B0 687269732053617779-
+    51 000000B9 6572202879206F7220-
+    51 000000C2 6E293F200A00       
+    52 000000C8 257300                  sawyercheckAns db "%s",0
+    53 000000CB 416C72696768742E20-     resistanceWelcome db "Alright. Now we will work on your electricity.",10,0
+    53 000000D4 4E6F77207765207769-
+    53 000000DD 6C6C20776F726B206F-
+    53 000000E6 6E20796F757220656C-
+    53 000000EF 656374726963697479-
+    53 000000F8 2E0A00             
+    54 000000FB 506C6561736520656E-     circuit1prompt db "Please enter the resistance of circuit #1 in ohms: ",10 ,0
+    54 00000104 746572207468652072-
+    54 0000010D 6573697374616E6365-
+    54 00000116 206F66206369726375-
+    54 0000011F 697420233120696E20-
+    54 00000128 6F686D733A200A00   
+    55 00000130 576861742069732074-     circuit2prompt db "What is the resistance of circuit #2 in ohms: ",10 ,0
+    55 00000139 686520726573697374-
+    55 00000142 616E6365206F662063-
+    55 0000014B 697263756974202332-
+    55 00000154 20696E206F686D733A-
+    55 0000015D 200A00             
+    56 00000160 256C6600                circuit1 db "%lf",0
+    57 00000164 256C6600                circuit2 db "%lf",0
+    58 00000168 54686520746F74616C-     totalResistance db "The total resistance is %7.8lf Ohms.",10,0
+    58 00000171 20726573697374616E-
+    58 0000017A 63652069732025372E-
+    58 00000183 386C66204F686D732E-
+    58 0000018C 0A00               
+    59 0000018E 5765726520796F7520-     cscheck db "Were you a computer science major (y or n)? ",10,0
+    59 00000197 6120636F6D70757465-
+    59 000001A0 7220736369656E6365-
+    59 000001A9 206D616A6F72202879-
+    59 000001B2 206F72206E293F200A-
+    59 000001BB 00                 
+    60 000001BC 257300                  cscheckAns db "%s",0
+    61 000001BF 5468616E6B20796F75-     good_bye db "Thank you.  Please follow the exit signs to the front desk.",10,0
+    61 000001C8 2E2020506C65617365-
+    61 000001D1 20666F6C6C6F772074-
+    61 000001DA 686520657869742073-
+    61 000001E3 69676E7320746F2074-
+    61 000001EC 68652066726F6E7420-
+    61 000001F5 6465736B2E0A00     
+    62 000001FC 257300                  sample db "%s",0
+    63 000001FF 5965732C2054686973-     tester db "Yes, This is a Test",10,0
+    63 00000208 206973206120546573-
+    63 00000211 740A00             
+    64                                  
+    65                                  segment .bss  ;Reserved for uninitialized data
+    66                                  
+    67                                  segment .text ;Reserved for executing instructions.
+    68                                  
+    69                                  work:
+    70                                  
+    71                                  ;Prolog ===== Insurance for any caller of this assembly module ========================================================
+    72                                  ;Any future program calling this module that the data in the caller's GPRs will not be modified.
+    73 00000000 55                      push rbp
+    74 00000001 4889E5                  mov  rbp,rsp
+    75 00000004 57                      push rdi                                                    ;Backup rdi
+    76 00000005 56                      push rsi                                                    ;Backup rsi
+    77 00000006 52                      push rdx                                                    ;Backup rdx
+    78 00000007 51                      push rcx                                                    ;Backup rcx
+    79 00000008 4150                    push r8                                                     ;Backup r8
+    80 0000000A 4151                    push r9                                                     ;Backup r9
+    81 0000000C 4152                    push r10                                                    ;Backup r10
+    82 0000000E 4153                    push r11                                                    ;Backup r11
+    83 00000010 4154                    push r12                                                    ;Backup r12
+    84 00000012 4155                    push r13                                                    ;Backup r13
+    85 00000014 4156                    push r14                                                    ;Backup r14
+    86 00000016 4157                    push r15                                                    ;Backup r15
+    87 00000018 53                      push rbx                                                    ;Backup rbx
+    88 00000019 9C                      pushf                                                       ;Backup rflags
+    89                                  
+    90                                  ;Save the value passed through from the main    
+    91 0000001A 4989FF                  mov r15, rdi        ;Save the Name value
+    92 0000001D F2440F10F8              movsd xmm15, xmm0   ;Save the Salary value
+    93                                  
+    94                                  ;===== Analyze Salary of the User ===================================================================
+    95                                  ;Welcome user with a message
+    96 00000022 6A00                    push qword 0
+    97 00000024 B800000000              mov rax, 0
+    98 00000029 48BF-                   mov rdi, welcome    ;"Hello %s . I am Ms Fenster.  The interview will begin now."
+    98 0000002B [0000000000000000] 
+    99 00000033 4C89FE                  mov rsi, r15
+   100 00000036 E8(00000000)            call printf
+   101 0000003B 58                      pop rax
+   102                                  
+   103                                  ;Print Wow message with salary
+   104 0000003C B801000000              mov rax, 1
+   105 00000041 48BF-                   mov rdi, wow   ;"Wow! $%8.2lf"
+   105 00000043 [3A00000000000000] 
+   106 0000004B F2410F10C7              movsd xmm0, xmm15
+   107 00000050 E8(00000000)            call printf
+   108                                  
+   109                                  ;Convert 50,000 to float to check salary
+   110 00000055 41BA50C30000            mov r10, 50000
+   111 0000005B F24D0F2AD2              cvtsi2sd xmm10, r10
+   112                                  
+   113                                  ;Convert 200,000 to float to check salary
+   114 00000060 41BA400D0300            mov r10, 200000
+   115 00000066 F24D0F2ADA              cvtsi2sd xmm11, r10
+   116                                  
+   117                                  ;Compare salary to see if below 50,000
+   118 0000006B 66450F2EFA              ucomisd xmm15, xmm10
+   119 00000070 721D                    jb low
+   120                                  
+   121                                  ;Compare salary to see if above 200,000
+   122 00000072 66450F2EFB              ucomisd xmm15, xmm11
+   123 00000077 772C                    ja high
+   124                                  
+   125                                  ;Salary if above 50,000 but below 200,000
+   126 00000079 B801000000              mov rax, 1
+   127 0000007E 48BF-                   mov rdi, mid1   ;"That's an good salary. "
+   127 00000080 [7D00000000000000] 
+   128 00000088 E8(00000000)            call printf
+   129 0000008D EB2C                    jmp sawyerLoop
+   130                                  
+   131                                  ;Salary if below 50,000
+   132                                  low:
+   133 0000008F B801000000              mov rax, 1
+   134 00000094 48BF-                   mov rdi, low1   ;"That's not a lot of cash. "
+   134 00000096 [4900000000000000] 
+   135 0000009E E8(00000000)            call printf
+   136 000000A3 EB16                    jmp sawyerLoop
+   137                                  
+   138                                  ;Salary if above 200,000
+   139                                  high:
+   140 000000A5 B801000000              mov rax, 1
+   141 000000AA 48BF-                   mov rdi, high1  ;"That's a lot of cash. "
+   141 000000AC [6500000000000000] 
+   142 000000B4 E8(00000000)            call printf
+   143 000000B9 EB00                    jmp sawyerLoop
+   144                                  
+   145                                  ;===== Ask if User is Chris Sawyer ===================================================================
+   146                                  ;Begin Loop of Sawyer Question if answer is not y or n
+   147                                  sawyerLoop:
+   148 000000BB 6A00                    push qword 0
+   149 000000BD B800000000              mov rax, 0
+   150 000000C2 48BF-                   mov rdi, sawyercheck    ;"Who do you think you are, Chris Sawyer (y or n)? "
+   150 000000C4 [9500000000000000] 
+   151 000000CC E8(00000000)            call printf
+   152 000000D1 58                      pop rax
+   153                                  
+   154                                  ;Scan block to check for y or n
+   155 000000D2 B800000000              mov rax, 0
+   156 000000D7 48BF-                   mov rdi, sawyercheckAns
+   156 000000D9 [C800000000000000] 
+   157 000000E1 4889E6                  mov rsi, rsp
+   158 000000E4 E8(00000000)            call scanf
+   159 000000E9 4C8B3C24                mov r15, [rsp]
+   160                                  
+   161                                  ;Check Sawyer question answered y
+   162 000000ED 4983FF79                cmp r15, 'y'
+   163 000000F1 7408                    je sawyerYes
+   164                                  
+   165                                  ;Sawyer question answered n if not would reset loop
+   166 000000F3 4983FF6E                cmp r15, 'n'
+   167 000000F7 7412                    je sawyerNo
+   168 000000F9 75C0                    jne sawyerLoop
+   169                                  
+   170                                  ;Sawyer question answered y and set return salary value to 1,000,000 and go to exit
+   171                                  sawyerYes:
+   172 000000FB 41BA40420F00            mov r10, 1000000
+   173 00000101 F24D0F2AFA              cvtsi2sd xmm15, r10
+   174 00000106 E931010000              jmp exit
+   175                                  
+   176                                  ;===== Collect Resistance Values of the Circuit ===================================================================
+   177                                  ;Sawyer question answered n and begins Resistant Calculation    
+   178                                  sawyerNo:
+   179 0000010B 6A00                    push qword 0
+   180 0000010D B800000000              mov rax, 0
+   181 00000112 48BF-                   mov rdi, resistanceWelcome  ;"Alright. Now we will work on your electricity."
+   181 00000114 [CB00000000000000] 
+   182 0000011C E8(00000000)            call printf
+   183 00000121 58                      pop rax
+   184                                  
+   185                                  ;Display a prompt message asking for circuit 1 resistance
+   186 00000122 6A00                    push qword 0
+   187 00000124 B800000000              mov rax, 0
+   188 00000129 48BF-                   mov rdi, circuit1prompt          ;"Please enter the resistance of circuit #1 in ohms: "
+   188 0000012B [FB00000000000000] 
+   189 00000133 E8(00000000)            call printf
+   190 00000138 58                      pop rax
+   191                                  
+   192                                  ;begin scan block for circuit 1 resistance
+   193 00000139 B801000000              mov rax, 1
+   194 0000013E 48BF-                   mov rdi, circuit1
+   194 00000140 [6001000000000000] 
+   195 00000148 4889E6                  mov rsi, rsp
+   196 0000014B E8(00000000)            call scanf
+   197 00000150 F2440F101C24            movsd xmm11, [rsp]
+   198                                  
+   199                                  ;Display a prompt message asking for circuit 2 resistance
+   200 00000156 6A00                    push qword 0
+   201 00000158 B800000000              mov rax, 0
+   202 0000015D 48BF-                   mov rdi, circuit2prompt          ;"What is the resistance of circuit #2 in ohms: "
+   202 0000015F [3001000000000000] 
+   203 00000167 E8(00000000)            call printf
+   204 0000016C 58                      pop rax
+   205                                  
+   206                                  ;begin scan block for circuit 2 resistance
+   207 0000016D B801000000              mov rax, 1
+   208 00000172 48BF-                   mov rdi, circuit2
+   208 00000174 [6401000000000000] 
+   209 0000017C 4889E6                  mov rsi, rsp
+   210 0000017F E8(00000000)            call scanf
+   211 00000184 F2440F102424            movsd xmm12, [rsp]
+   212                                  
+   213                                  ;===== Calculate Resistance of the Circuit ===================================================================
+   214                                  ;Convert 1 to float and set xmm14 to 1
+   215 0000018A 41B801000000            mov r8,1
+   216 00000190 F24D0F2AE8              cvtsi2sd xmm13, r8   ;Convert 1 to float
+   217 00000195 F2450F10F5              movsd xmm14, xmm13   ;Set xmm14 to 1
+   218                                  
+   219                                  ;Divide values 1/(the circuit resistance value)
+   220 0000019A F2450F5EEB              divsd xmm13,xmm11   ;Divide 1(xmm13)/xmm10
+   221 0000019F F2450F5EF4              divsd xmm14,xmm12   ;Divide 1(xmm14)/xmm11
+   222                                  
+   223                                  ;Add Each xmm13,xmm14 together into xmm9
+   224 000001A4 F2450F58CD              addsd xmm9,xmm13
+   225 000001A9 F2450F58CE              addsd xmm9,xmm14
+   226                                  
+   227                                  ;Divide 1(xmm8)/xmm9 to convert added solution to the correct solution
+   228 000001AE 41B901000000            mov r9,1        
+   229 000001B4 F24D0F2AC1              cvtsi2sd xmm8, r9   ;Convert 1 to float
+   230 000001B9 F2450F5EC1              divsd xmm8,xmm9     ;Divide 1(xmm8)/xmm9 to convert added solution to the correct solution
+   231                                  
+   232                                  ;Print total resistance value of the circuit
+   233 000001BE B801000000              mov rax, 1
+   234 000001C3 48BF-                   mov rdi, totalResistance			;"The resistance of the entire circuit is %7.8lf"
+   234 000001C5 [6801000000000000] 
+   235 000001CD F2410F10C0              movsd xmm0, xmm8
+   236 000001D2 E8(00000000)            call printf
+   237                                  
+   238                                  ;===== Ask if user is Computer Science Major ===================================================================
+   239                                  ;Begin the Computer Science Major Question Loop
+   240                                  csLoop:
+   241 000001D7 6A00                    push qword 0
+   242 000001D9 B800000000              mov rax, 0
+   243 000001DE 48BF-                   mov rdi, cscheck    ;"Were you a computer science major (y or n)? "
+   243 000001E0 [8E01000000000000] 
+   244 000001E8 E8(00000000)            call printf
+   245 000001ED 58                      pop rax
+   246                                  
+   247                                  ;Reset the stack before scan block
+   248 000001EE 58                      pop rax
+   249 000001EF 6A00                    push qword 0
+   250                                  
+   251                                  ;Scan block for Computer Science Question either y or n
+   252 000001F1 B800000000              mov rax, 0
+   253 000001F6 48BF-                   mov rdi, cscheckAns
+   253 000001F8 [BC01000000000000] 
+   254 00000200 4889E6                  mov rsi, rsp
+   255 00000203 E8(00000000)            call scanf
+   256 00000208 4C8B1424                mov r10, [rsp]
+   257                                  
+   258                                  ;Check Computer Science question answered n
+   259 0000020C 4983FA6E                cmp r10, 'n'
+   260 00000210 7408                    je csNo
+   261                                  
+   262                                  ;Check Computer Science question answered y if not would reset loop
+   263 00000212 4983FA79                cmp r10, 'y'
+   264 00000216 7413                    je csYes
+   265 00000218 75BD                    jne csLoop
+   266                                  
+   267                                  ;Computer Science question answered n and set xmm15 to nonCS value which is 1200.12 and exit
+   268                                  csNo:
+   269 0000021A 49BC14AE47E17AC092-     mov r12, 0x4092C07AE147AE14 ; IEEE 754 - 1200.12
+   269 00000223 40                 
+   270 00000224 664D0F6EFC              movq xmm15, r12
+   271 00000229 EB11                    jmp exit
+   272                                  
+   273                                  ;Computer Science question answered y and set xmm15 to CSMaj value which is 88000.88 and exit
+   274                                  csYes:
+   275 0000022B 49BC48E17A140E7CF5-     mov r12,0x40F57C0E147AE148 ;IEEE 754 - 88000.88
+   275 00000234 40                 
+   276 00000235 664D0F6EFC              movq xmm15, r12
+   277 0000023A EB00                    jmp exit
+   278                                  
+   279                                  ;Exit where it output good bye message and return xmm15 value to the main.cpp
+   280                                  exit:
+   281 0000023C 6A00                    push qword 0
+   282 0000023E B800000000              mov rax, 0
+   283 00000243 48BF-                   mov rdi, good_bye   ;"Thank you.  Please follow the exit signs to the front desk."
+   283 00000245 [BF01000000000000] 
+   284 0000024D E8(00000000)            call printf
+   285 00000252 58                      pop rax
+   286                                  
+   287 00000253 F2410F10C7              movsd xmm0,xmm15
+   288                                  
+   289                                  ;===== Restore original values to integer registers ===================================================================
+   290 00000258 9D                      popf                                                        ;Restore rflags
+   291 00000259 5B                      pop rbx                                                     ;Restore rbx
+   292 0000025A 415F                    pop r15                                                     ;Restore r15
+   293 0000025C 415E                    pop r14                                                     ;Restore r14
+   294 0000025E 415D                    pop r13                                                     ;Restore r13
+   295 00000260 415C                    pop r12                                                     ;Restore r12
+   296 00000262 415B                    pop r11                                                     ;Restore r11
+   297 00000264 415A                    pop r10                                                     ;Restore r10
+   298 00000266 4159                    pop r9                                                      ;Restore r9
+   299 00000268 4158                    pop r8                                                      ;Restore r8
+   300 0000026A 59                      pop rcx                                                     ;Restore rcx
+   301 0000026B 5A                      pop rdx                                                     ;Restore rdx
+   302 0000026C 5E                      pop rsi                                                     ;Restore rsi
+   303 0000026D 5F                      pop rdi                                                     ;Restore rdi
+   304 0000026E 5D                      pop rbp                                                     ;Restore rbp
+   305                                  
+   306 0000026F C3                      ret
+   307                                  
+   308                                  ;========1=========2=========3=========4=========5=========6=========7=========8=========9=========0=========1=========2=========3**

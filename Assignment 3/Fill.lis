@@ -1,0 +1,174 @@
+     1                                  ;****************************************************************************************************************************
+     2                                  ;Program name: "sumArray".  This program demonstrates the input of float numbers into an array from the standard input       *
+     3                                  ;device utilizing those values to obtain the sum of float numbers in the array                                               *
+     4                                  ; Copyright (C) 2021 Albert Truong.                                                                                   *
+     5                                  ;                                                                                                                     *
+     6                                  ;This file is part of the software program "sumArray".                                                                *
+     7                                  ;sumArray is free software: you can redistribute it and/or modify it under the terms of the GNU General Public        *
+     8                                  ;License version 3 as published by the Free Software Foundation.                                                      *
+     9                                  ;sumArray is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied       *
+    10                                  ;warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.     *
+    11                                  ;A copy of the GNU General Public License v3 is available here:  <https:;www.gnu.org/licenses/>.                            *
+    12                                  ;****************************************************************************************************************************
+    13                                  
+    14                                  
+    15                                  ;=======1=========2=========3=========4=========5=========6=========7=========8=========9=========0=========1=========2=========3**
+    16                                  ;
+    17                                  ;Author information
+    18                                  ;  Author name: Albert Truong
+    19                                  ;  Author email: atruong811@fullerton.edu
+    20                                  ;
+    21                                  ;Program information
+    22                                  ;  Program name: sumArray
+    23                                  ;  Programming languages: One modules in C, One modules in C++ and three module in X86
+    24                                  ;  Date program began: 2021-March-10
+    25                                  ;  Date of last update: 2021-March-21
+    26                                  ;  Date of reorganization of comments: 2021-March-21
+    27                                  ;  Files in this program: Main.c, Control.asm, Fill.asm,  Sum.asm, Display.cpp
+    28                                  ;  Status: Finished.  The program was tested extensively with no errors in Ubuntu20.04 LTS on Windows 10 utilizing WSL.
+    29                                  ;
+    30                                  ;Purpose
+    31                                  ;  User input float values into an array. Those values would be of the array would be added up and the sum value would be
+    32                                  ;  returned to the main. 
+    33                                  ;
+    34                                  ;This file
+    35                                  ;   File name: Fill.asm
+    36                                  ;   Language: X86 with Intel syntax.
+    37                                  ;   Max page width: 132 columns
+    38                                  ;   Assemble: nasm -f elf64 -l Fill.lis -o Fill.o Fill.asm
+    39                                  ;
+    40                                  ;=======1=========2=========3=========4=========5=========6=========7=========8=========9=========0=========1=========2=========3**
+    41                                  ;
+    42                                  ;
+    43                                  ;===== Begin code area ===========================================================================================================
+    44                                  extern printf
+    45                                  extern scanf
+    46                                  extern atof
+    47                                  
+    48                                  global Fill
+    49                                  
+    50                                  segment .data
+    51 00000000 506C6561736520656E-     welcome db "Please enter floating point numbers separated by ws.",10,0
+    51 00000009 74657220666C6F6174-
+    51 00000012 696E6720706F696E74-
+    51 0000001B 206E756D6265727320-
+    51 00000024 736570617261746564-
+    51 0000002D 2062792077732E0A00 
+    52 00000036 5768656E2066696E69-     welcome2 db "When finished press enter followed by cntl+D.",10,0
+    52 0000003F 736865642070726573-
+    52 00000048 7320656E7465722066-
+    52 00000051 6F6C6C6F7765642062-
+    52 0000005A 7920636E746C2B442E-
+    52 00000063 0A00               
+    53 00000065 546573740A00            tester db "Test",10,0
+    54 0000006B 256C6600                input1 db "%lf",0
+    55 0000006F 256C660A00              output1 db "%lf",10,0
+    56                                  
+    57                                  segment .bss  ;Reserved for uninitialized data
+    58                                  
+    59                                  segment .text ;Reserved for executing instructions.
+    60                                  
+    61                                  Fill:
+    62                                  
+    63                                  ;Prolog ===== Insurance for any caller of this assembly module ========================================================
+    64                                  ;Any future program calling this module that the data in the caller's GPRs will not be modified.
+    65 00000000 55                      push rbp
+    66 00000001 4889E5                  mov  rbp,rsp
+    67 00000004 57                      push rdi                                                    ;Backup rdi
+    68 00000005 56                      push rsi                                                    ;Backup rsi
+    69 00000006 52                      push rdx                                                    ;Backup rdx
+    70 00000007 51                      push rcx                                                    ;Backup rcx
+    71 00000008 4150                    push r8                                                     ;Backup r8
+    72 0000000A 4151                    push r9                                                     ;Backup r9
+    73 0000000C 4152                    push r10                                                    ;Backup r10
+    74 0000000E 4153                    push r11                                                    ;Backup r11
+    75 00000010 4154                    push r12                                                    ;Backup r12
+    76 00000012 4155                    push r13                                                    ;Backup r13
+    77 00000014 4156                    push r14                                                    ;Backup r14
+    78 00000016 4157                    push r15                                                    ;Backup r15
+    79 00000018 53                      push rbx                                                    ;Backup rbx
+    80 00000019 9C                      pushf                                                       ;Backup rflags
+    81                                  
+    82                                  ;Registers rax, rip, and rsp are usually not backed up.
+    83 0000001A 6A00                    push qword 0
+    84                                  ;-----------------------------Initialize Parameters-----------------------------------------
+    85 0000001C 4989FF                  mov r15, rdi                      ; Address of array saved to r15.
+    86 0000001F 4989F6                  mov r14, rsi                      ; Max number of elements allowed in array.
+    87 00000022 41BD00000000            mov r13, 0                        ; Set counter to 0 elements in Array.
+    88                                  
+    89                                  ;-----------------------------Display Instructions-----------------------------------------
+    90 00000028 6A00                    push qword 0
+    91 0000002A B800000000              mov rax, 0                     
+    92 0000002F 48BF-                   mov rdi, welcome               ;"Please enter floating point numbers separated by ws."
+    92 00000031 [0000000000000000] 
+    93 00000039 E8(00000000)            call printf
+    94 0000003E 58                      pop rax 
+    95                                  
+    96 0000003F 6A00                    push qword 0
+    97 00000041 B800000000              mov rax, 0                     
+    98 00000046 48BF-                   mov rdi, welcome2               ;"When finished press enter followed by cntl+D."
+    98 00000048 [3600000000000000] 
+    99 00000050 E8(00000000)            call printf
+   100 00000055 58                      pop rax
+   101                                  ;---------------------------------Loop Start---------------------------------------------
+   102                                  loopStart:
+   103                                  
+   104                                  ; User Input into array from scanf.
+   105 00000056 B800000000              mov rax, 0                    
+   106 0000005B 48BF-                   mov rdi, input1
+   106 0000005D [6B00000000000000] 
+   107 00000065 6A00                    push qword 0
+   108 00000067 4889E6                  mov rsi, rsp  
+   109 0000006A E8(00000000)            call scanf
+   110 0000006F F2440F10F8              movsd xmm15, xmm0
+   111                                  
+   112                                  ; Checks if CTRl-D is Inputted.
+   113 00000074 4898                    cdqe
+   114 00000076 4883F8FF                cmp rax, -1                          
+   115 0000007A 7412                    je loopEnd                          ; If CTRl-D is entered, jump to loopEnd.
+   116                                   
+   117 0000007C 415C                    pop r12
+   118                                  
+   119                                  
+   120                                  ;--------------------------------Add Float Input into Array--------------------------------------------
+   121 0000007E F2470F113CEF            movsd [r15 + 8 * r13], xmm15            ; Add Float input into array at index of r13 counter.
+   122 00000084 49FFC5                  inc r13                                 ; Increments counter r13 by 1.
+   123                                  
+   124                                  
+   125                                  
+   126                                  ;-----------------------------Array Capacity Check-------------------------------------------
+   127 00000087 4D39F5                  cmp r13, r14                           ; Compares # of elements (r13) to capacity (r14).
+   128 0000008A 7403                    je end                                 ; If r13 equals r14, jumps to end
+   129                                  
+   130                                  ; Restarts loop.
+   131 0000008C EBC8                    jmp loopStart
+   132                                  
+   133                                  ;---------------------------------END OF LOOP-----------------------------------------------
+   134                                  loopEnd:
+   135 0000008E 58                      pop rax
+   136                                  
+   137                                  ;------------------------------------EXIT---------------------------------------------------
+   138                                  end:
+   139 0000008F 58                      pop rax
+   140 00000090 4C89E8                  mov rax, r13
+   141                                  
+   142                                  ;===== Restore original values to integer registers ===================================================================
+   143 00000093 9D                      popf                                                        ;Restore rflags
+   144 00000094 5B                      pop rbx                                                     ;Restore rbx
+   145 00000095 415F                    pop r15                                                     ;Restore r15
+   146 00000097 415E                    pop r14                                                     ;Restore r14
+   147 00000099 415D                    pop r13                                                     ;Restore r13
+   148 0000009B 415C                    pop r12                                                     ;Restore r12
+   149 0000009D 415B                    pop r11                                                     ;Restore r11
+   150 0000009F 415A                    pop r10                                                     ;Restore r10
+   151 000000A1 4159                    pop r9                                                      ;Restore r9
+   152 000000A3 4158                    pop r8                                                      ;Restore r8
+   153 000000A5 59                      pop rcx                                                     ;Restore rcx
+   154 000000A6 5A                      pop rdx                                                     ;Restore rdx
+   155 000000A7 5E                      pop rsi                                                     ;Restore rsi
+   156 000000A8 5F                      pop rdi                                                     ;Restore rdi
+   157 000000A9 5D                      pop rbp                                                     ;Restore rbp
+   158                                  
+   159 000000AA C3                      ret
+   160                                  
+   161                                  ;========1=========2=========3=========4=========5=========6=========7=========8=========9=========0=========1=========2=========3**
